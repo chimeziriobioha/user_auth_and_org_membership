@@ -3,6 +3,8 @@ from markupsafe import Markup
 
 
 from maincode import db
+from maincode.appstrings import lcl
+from maincode.mainapp import utils as au
 from maincode.mainapp.model import User, Organisation
 
 
@@ -41,3 +43,44 @@ def register_user(data):
     db.session.commit()
 
     return user, org
+
+
+def register_org(data):
+    
+    # Initialise org
+    org = Organisation(
+        name=data[lcl.name],
+        creatorId=data['creatorId'],
+        description=data[lcl.description],
+        orgId=au.generate_new_org_id(Organisation),
+    )
+
+    # Add org to session
+    db.session.add(org)
+
+    # Commit all
+    db.session.commit()
+
+    return org, org.creator
+
+
+def add_user_to_org(userId, orgId):
+
+    user = User.get_self(userId)
+    if not user:
+        return
+
+    org = Organisation.get_self(orgId)
+    if not org:
+        return
+    
+    # Add user to org
+    org.users.add(user)
+
+    # Commit all
+    db.session.commit()
+
+    return {
+        "status": "success",
+        "message": "User added to organisation successfully",
+    }

@@ -18,6 +18,6 @@ class UserSchema(Schema):
 
 
 class OrganisationSchema(Schema):
-    orgId = fields.Str(required=True)
+    orgId = fields.Str(required=True, dump_only=True)
     name = fields.Str(required=True)
     description = fields.Str(required=True)

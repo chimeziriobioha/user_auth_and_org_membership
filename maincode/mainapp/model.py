@@ -74,13 +74,17 @@ class User(db.Model, UserMixin):
     
     def add_default_organisation(self, description):
         default_org = Organisation(
-            orgId=self.id, # Use ID of user for its default org
             creatorId=self.id,
             description=description,
+            orgId=au.generate_new_org_id(Organisation),
             name=f"{self.firstName}'s {ccl.ORGANISATION}",
         )
         db.session.add(default_org)
         return default_org
+    
+    @staticmethod
+    def get_self(user_id):
+        return User.query.filter_by(id=user_id).first()
     
     def to_dict(self):
         return {
@@ -119,6 +123,10 @@ class Organisation(db.Model, UserMixin):
         self.orgId = orgId
         self.creatorId = creatorId
         self.description = description
+    
+    @staticmethod
+    def get_self(org_id):
+        return Organisation.query.filter_by(id=org_id).first()
     
     def to_dict(self):
         return {

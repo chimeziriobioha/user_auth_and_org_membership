@@ -2,6 +2,13 @@ from flask import jsonify
 from flask.views import MethodView
 from flask_login import login_user
 from flask_smorest import Blueprint as smBlueprint, abort as smAbort
+from flask_jwt_extended import (
+    # create_refresh_token,
+    # create_access_token,
+    get_jwt_identity,
+    jwt_required,
+    # get_jwt,
+)
 
 from maincode.mainapp import utils as au
 from maincode.mainapp.model import User, Organisation
@@ -29,7 +36,8 @@ def auth_user(user_or_id, password, login=False):
     user if everything goes well, else, return an 
     error dict"""
     if isinstance(user_or_id, str):
-        user = User.query.filter_by(id=user_or_id).first()
+        # user = User.query.filter_by(id=user_or_id).first()
+        return User.get_self(user_or_id)
     else:
         user = user_or_id
 
@@ -53,7 +61,6 @@ class RegisterUser(MethodView):
     def post(self, data):
         """REGISTER NEW USER"""
         try:
-
             data.update({"accessToken": au.create_new_jwt_token(data['userId'])})
 
             user, _ = mainapp.routes.register_user(data)
@@ -83,7 +90,6 @@ class LoginUser(MethodView):
     def post(self, data):
         """LOGIN USER"""
         try:
-
             user = auth_user(data['userId'], data['password'], login=True)
 
             return jsonify({
@@ -106,11 +112,13 @@ class LoginUser(MethodView):
 @sm_accounts.route(GET_USER_URL)
 class GetUser(MethodView):
 
+    @jwt_required()
     @sm_accounts.response(200, UserSchema)
     def get(self, id):
         """GET PARTICULAR USER"""
         try:
-            return User.query.filter_by(id=id).first()
+            # return User.query.filter_by(id=id).first()
+            return User.get_self(id)
         except TypeError:
             smAbort(400, message="Could not get user")
 
@@ -118,6 +126,7 @@ class GetUser(MethodView):
 @sm_accounts.route(LIST_ORGS_URL)
 class ListOrgs(MethodView):
 
+    @jwt_required()
     @sm_accounts.response(200, OrganisationSchema(many=True))
     def get(self):
         """LIST ALL ORGS"""
@@ -130,13 +139,72 @@ class ListOrgs(MethodView):
 @sm_accounts.route(GET_ORG_URL)
 class GetOrg(MethodView):
 
+    @jwt_required()
     @sm_accounts.response(200, OrganisationSchema)
     def get(self, orgId):
         """GET PARTICULAR ORGANISATION"""
         try:
-            return Organisation.query.filter_by(id=orgId).first()
+            # return Organisation.query.filter_by(id=orgId).first()
+            return Organisation.get_self(orgId)
         except TypeError:
             smAbort(400, message="Could not get org")
+
+
+@sm_accounts.route(REGISTER_ORG_URL)
+class RegisterOrg(MethodView):
+
+    @jwt_required()
+    @sm_accounts.arguments(OrganisationSchema)
+    @sm_accounts.response(201, OrganisationSchema)
+    def post(self, data):
+        """REGISTER NEW ORG"""
+        try:
+            data.update({"creatorId": get_jwt_identity()})
+
+            org, creator = mainapp.routes.register_org(data)
+
+            print(data)
+            print(creator.to_dict())
+
+            return jsonify({
+                "status": "success",
+                "message": "Organisation created successfully",
+                "data": org.to_dict()
+            })
+        except TypeError:
+            # smAbort(400, message="Unable to complete create user at this time")
+            return {
+                "status": "Bad Request",
+                "message": "Client error",
+                "statusCode": 400
+            }
+
+
+@sm_accounts.route(ADD_USER_TO_ORG_URL)
+class AddUsertoOrg(MethodView):
+
+    @jwt_required()
+    # @sm_accounts.arguments(UserSchema)
+    @sm_accounts.response(201, UserSchema)
+    def post(self, data):
+        """ADD USER TO ORG"""
+        try:
+            data.update({"creatorId": get_jwt_identity()})
+
+            org, _ = mainapp.routes.register_org(data)
+
+            return jsonify({
+                "status": "success",
+                "message": "Organisation created successfully",
+                "data": org.to_dict()
+            })
+        except TypeError:
+            # smAbort(400, message="Unable to complete create user at this time")
+            return {
+                "status": "Bad Request",
+                "message": "Client error",
+                "statusCode": 400
+            }
 
 
 def register_accounts_api(app):
@@ -150,6 +218,8 @@ def register_accounts_api(app):
         LIST_ORGS_URL, view_func=ListOrgs.as_view("list_orgs-list_orgs"))
     app.add_url_rule(
         GET_ORG_URL, view_func=GetOrg.as_view("get_org-get_org"))
+    app.add_url_rule(
+        ADD_USER_TO_ORG_URL, view_func=AddUsertoOrg.as_view("add_user_to_org_org-add_user_to_org_org"))
 
 
 from maincode import mainapp  # noqa
