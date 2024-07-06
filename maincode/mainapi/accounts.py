@@ -1,4 +1,4 @@
-from flask import jsonify
+from flask import jsonify, session
 from flask.views import MethodView
 from flask_login import login_user
 from flask_smorest import Blueprint as smBlueprint, abort as smAbort
@@ -10,9 +10,11 @@ from flask_jwt_extended import (
     # get_jwt,
 )
 
+from maincode.appstrings import lcl
 from maincode.mainapp import utils as au
 from maincode.mainapp.model import User, Organisation
-from maincode.mainapi.schemas import UserSchema, OrganisationSchema, UserLoginSchema
+from maincode.mainapi.schemas import UserSchema, OrganisationSchema, \
+    UserLoginSchema, AddUserToOrgSchema
 
 
 sm_accounts = smBlueprint("Accounts", __name__,
@@ -59,25 +61,42 @@ class RegisterUser(MethodView):
     @sm_accounts.response(201, UserSchema)
     def post(self, data):
         """REGISTER NEW USER"""
+        required_f = ['firstName', 'lastName', 'email', 'password']
+
+        missing_f = [f for f in required_f if not data.get(f)]
+
+        errors = {lcl.errors: []}
+
+        if missing_f:
+            errors[lcl.errors].extend(
+                [{lcl.field: f, lcl.message: f"{f.title()} is required"} for f in missing_f]
+            )
+        
+        if User.query.filter_by(email=data[lcl.email]).first():
+            errors[lcl.errors].append({lcl.field: lcl.email, lcl.message: "User with email exists"})
+        
+        if not au.is_valid_email_format(data[lcl.email]):
+            errors[lcl.errors].append({lcl.field: lcl.email, lcl.message: "Invalid email"})
+        
+        if data[lcl.phone] and not data[lcl.phone].replace('+', '').replace('-', '').isnumeric():
+            errors[lcl.errors].append({lcl.field: lcl.phone, lcl.message: "Invalid phone number"})
+        
+        if errors[lcl.errors]:
+            return jsonify(errors), 422
+        
         try:
             user, _ = mainapp.routes.register_user(data)
-
-            return jsonify({
-                "status": "success",
-                "message": "Registration successful",
-                "data": {
-                    "accessToken": user.current_access_token,
-                    "user": user.to_dict()
-                }
-            })
         except TypeError:
-            # smAbort(400, message="Unable to complete create user at this time")
-            # return jsonify({
-            #     "status": "Bad request",
-            #     "message": "Registration unsuccessful",
-            #     "statusCode": 400
-            # })
             return jsonify(au.UNSUCCESSFUL_REGISTER_USER_RESPONSE)
+
+        return jsonify({
+            "status": "success",
+            "message": "Registration successful",
+            "data": {
+                "accessToken": user.current_access_token,
+                "user": user.to_dict()
+            }
+        })
 
 
 @sm_accounts.route(LOGIN_USER_URL)
@@ -111,8 +130,12 @@ class GetUser(MethodView):
     def get(self, id):
         """GET PARTICULAR USER"""
         try:
-            # return User.query.filter_by(id=id).first()
-            return User.get_self(id)
+            user = User.get_self(id)
+            return jsonify({
+                "status": "success",
+                "message": "User fetched successfully",
+                "data": user.to_dict()
+            })
         except TypeError:
             smAbort(400, message="Could not get user")
 
@@ -121,11 +144,18 @@ class GetUser(MethodView):
 class ListOrgs(MethodView):
 
     @jwt_required()
-    @sm_accounts.response(200, OrganisationSchema(many=True))
+    @sm_accounts.response(200, OrganisationSchema)
     def get(self):
         """LIST ALL ORGS"""
         try:
-            return Organisation.query.all()
+            # return Organisation.query.all()
+            return jsonify({
+                "status": "success",
+                "message": "Orgs fetched successfully",
+                "data": {
+                    "organisations": Organisation.query.all()
+                }
+            })
         except TypeError:
             smAbort(500, message="Unable to get orgs at this time")
 
@@ -138,8 +168,12 @@ class GetOrg(MethodView):
     def get(self, orgId):
         """GET PARTICULAR ORGANISATION"""
         try:
-            # return Organisation.query.filter_by(id=orgId).first()
-            return Organisation.get_self(orgId)
+            org = Organisation.get_self(orgId)
+            return jsonify({
+                "status": "success",
+                "message": "Org fetched successfully",
+                "data": org.to_dict()
+            })
         except TypeError:
             smAbort(400, message="Could not get org")
 
@@ -152,35 +186,36 @@ class RegisterOrg(MethodView):
     @sm_accounts.response(201, OrganisationSchema)
     def post(self, data):
         """REGISTER NEW ORG"""
+
+        if not data[lcl.name]:
+            return jsonify({lcl.errors: [{lcl.field: lcl.name, lcl.message: "Name is required"}]}), 422
+
         try:
             data.update({"creatorId": get_jwt_identity()})
 
-            org, creator = mainapp.routes.register_org(data)
+            org, _ = mainapp.routes.register_org(data)
 
-            print(data)
-            print(creator.to_dict())
-
-            return jsonify({
-                "status": "success",
-                "message": "Organisation created successfully",
-                "data": org.to_dict()
-            })
         except TypeError:
-            # smAbort(400, message="Unable to complete create user at this time")
             return jsonify(au.UNSUCCESSFUL_REGISTER_ORG_RESPONSE)
+
+        return jsonify({
+            "status": "success",
+            "message": "Organisation created successfully",
+            "data": org.to_dict()
+        })
 
 
 @sm_accounts.route(ADD_USER_TO_ORG_URL)
 class AddUserToOrg(MethodView):
 
-    @sm_accounts.arguments(UserSchema(only={'userId'}))
-    @sm_accounts.response(200, UserSchema)
+    @sm_accounts.arguments(AddUserToOrgSchema(only={'userId'}))
+    # @sm_accounts.response(200)
     def post(self, data, orgId):
         """ADD USER TO ORG"""
         try:
             _, _ = mainapp.routes.add_user_to_org(data['userId'], orgId)
 
-            return jsonify(au.SUCCESSFUL_ADD_USER_TO_ORG_RESPONSE)
+            return jsonify(au.SUCCESSFUL_ADD_USER_TO_ORG_RESPONSE), 200
         except TypeError:
             return {
                 "status": "Bad Request",

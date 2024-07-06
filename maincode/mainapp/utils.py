@@ -1,3 +1,4 @@
+import re
 from uuid import uuid4
 from datetime import datetime, timezone
 from flask_jwt_extended import create_access_token, create_refresh_token
@@ -75,3 +76,27 @@ def generate_new_user_id(Usr):
         if Usr.get_self(new_id):
             continue
         return new_id
+    
+
+def is_valid_email_format(string):
+    # check if string contains any other char except
+    if re.compile(r'[^a-zA-Z0-9._@]').search(string):
+        return False
+    elif "@" not in string:
+        return False
+    elif "." not in string:
+        return False
+    elif string.endswith("."):
+        return False
+
+    split_by_at = string.split('@')
+    if len(split_by_at) != 2:
+        return False
+
+    split_domain_by_dot = split_by_at[1].split('.')
+    if len(split_domain_by_dot) != 2 \
+            or not split_domain_by_dot[0] or not split_domain_by_dot[1]:
+        return False
+
+    # Else
+    return True

@@ -10,9 +10,12 @@ def validate_email(value):
 
 class UserSchema(Schema):
     userId = fields.Str(dump_only=True)
-    firstName = fields.Str(required=True)
-    lastName = fields.Str(required=True)
-    email = fields.Email(validate=validate_email)
+    # firstName = fields.Str(required=True)
+    # lastName = fields.Str(required=True)
+    # email = fields.Email(validate=validate_email)
+    firstName = fields.Str()
+    lastName = fields.Str()
+    email = fields.Str()
     password = fields.Str(required=True, load_only=True)
     phone = fields.Str()
 
@@ -20,6 +23,10 @@ class UserSchema(Schema):
 class UserLoginSchema(Schema):
     email = fields.Str(required=True)
     password = fields.Str(required=True, load_only=True)
+
+
+class AddUserToOrgSchema(Schema):
+    userId = fields.Str(required=True)
 
 
 class OrganisationSchema(Schema):

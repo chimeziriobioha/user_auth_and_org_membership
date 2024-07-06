@@ -26,7 +26,7 @@ def register_user(data):
     
     # Initialise user
     user = User(
-        userId=user_id,
+        userId=None,
         email=data['email'],
         phone=data['phone'],
         lastName=data['lastName'],

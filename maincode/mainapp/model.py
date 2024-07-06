@@ -114,7 +114,7 @@ class Organisation(db.Model, UserMixin):
 
     id = db.Column(db.String, primary_key=True)
     orgId = db.Column(db.String, nullable=False, unique=True)
-    name = db.Column(db.String, nullable=False, unique=True)
+    name = db.Column(db.String, nullable=False)
     description = db.Column(db.String)
     created_on = db.Column(db.DateTime, nullable=False, default=au.aware_utcnow)
     # .........
