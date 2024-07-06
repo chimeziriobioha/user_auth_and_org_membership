@@ -41,10 +41,11 @@ class User(db.Model, UserMixin):
     phone = db.Column(db.String)
     created_on = db.Column(db.DateTime, nullable=False, default=au.aware_utcnow)
     # .........
+    # Has to sacrifice `load="dynamic"` in order to visualize relationships in flask-admin
     organisations_created = db.relationship(
-        'Organisation', backref=lcl.creator, lazy=lcl.dynamic, foreign_keys='Organisation.creatorId')
+        'Organisation', backref=lcl.creator, foreign_keys='Organisation.creatorId')
     organisations = db.relationship(
-        'Organisation', secondary=users_organisations_table, back_populates=lcl.users, lazy=lcl.dynamic)
+        'Organisation', secondary=users_organisations_table, back_populates=lcl.users)
 
     def __init__(self, userId, firstName, lastName, email, password, accessToken, phone=None):
 
@@ -54,12 +55,17 @@ class User(db.Model, UserMixin):
         self.userId = userId
         self.lastName = lastName
         self.firstName = firstName
-        self.password = bcrypt.generate_password_hash(password)
+        self.password = bcrypt.generate_password_hash(password).decode('utf-8')
         self._accessTokens = [{
             lcl.user_id: userId, 
             lcl.token: accessToken, 
             lcl.datetime: au.aware_utcnow().isoformat()
         }]
+    
+    # def update_password(self):
+    #     """Arbitrary password update"""
+    #     self.password = bcrypt.generate_password_hash("mypassword").decode('utf-8')
+    #     db.session.commit()
 
     def confirm_password(self, password):
         return bcrypt.check_password_hash(self.password, password)

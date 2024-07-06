@@ -4,6 +4,7 @@
 class lcl:
     user = "user"
     name = "name"
+    email = "email"
     users = "users"
     error = "error"
     token = "token"

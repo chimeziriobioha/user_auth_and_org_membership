@@ -21,16 +21,18 @@ def home():
 
 
 def register_user(data):
+
+    user_id = au.generate_new_user_id(User)
     
     # Initialise user
     user = User(
+        userId=user_id,
         email=data['email'],
         phone=data['phone'],
-        userId=data['userId'],
         lastName=data['lastName'],
         password=data['password'],
         firstName=data['firstName'],
-        accessToken=data['accessToken']
+        accessToken=au.create_new_jwt_token(user_id)
     )
 
     # Add user to session
@@ -80,7 +82,4 @@ def add_user_to_org(userId, orgId):
     # Commit all
     db.session.commit()
 
-    return {
-        "status": "success",
-        "message": "User added to organisation successfully",
-    }
+    return user, org

@@ -6,10 +6,30 @@ from flask_jwt_extended import create_access_token, create_refresh_token
 from maincode.appstrings import lcl
 
 
-UNSUCCESSFUL_LOGIN_RESPONSE = {
+UNSUCCESSFUL_REGISTER_USER_RESPONSE = {
+    "status": "Bad request",
+    "message": "Registration unsuccessful",
+    "statusCode": 400
+}
+
+
+UNSUCCESSFUL_LOGIN_USER_RESPONSE = {
     "status": "Bad request",
     "message": "Authentication failed",
     "statusCode": 401
+}
+
+
+UNSUCCESSFUL_REGISTER_ORG_RESPONSE = {
+    "status": "Bad Request",
+    "message": "Client error",
+    "statusCode": 400
+}
+
+
+SUCCESSFUL_ADD_USER_TO_ORG_RESPONSE = {
+    "status": "success",
+    "message": "User added to organisation successfully",
 }
 
 
@@ -42,8 +62,16 @@ def create_new_jwt_token(identity, refresh=False):
 
 
 def generate_new_org_id(Org):
-    new_id = str(uuid4())
+    new_id = str(uuid4()).replace('-', '')
     while True:
         if Org.get_self(new_id):
+            continue
+        return new_id
+
+
+def generate_new_user_id(Usr):
+    new_id = str(uuid4()).replace('-', '')
+    while True:
+        if Usr.get_self(new_id):
             continue
         return new_id

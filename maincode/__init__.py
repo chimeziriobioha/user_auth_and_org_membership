@@ -83,7 +83,12 @@ class ViewOnly(ModelView):
 
 
 class UserAdminView(ViewOnly):
-    pass
+    column_hide_backrefs = False
+    column_list = (
+        'userId', 'firstName', 'lastName', 'email',
+        'organisations', 'organisations_created',
+        'phone', 'password', '_accessTokens', 
+    )
 
 
 class OrganisationAdminView(ViewOnly):

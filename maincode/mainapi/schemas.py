@@ -9,7 +9,7 @@ def validate_email(value):
 
 
 class UserSchema(Schema):
-    userId = fields.Str(required=True)
+    userId = fields.Str(dump_only=True)
     firstName = fields.Str(required=True)
     lastName = fields.Str(required=True)
     email = fields.Email(validate=validate_email)
@@ -17,7 +17,12 @@ class UserSchema(Schema):
     phone = fields.Str()
 
 
+class UserLoginSchema(Schema):
+    email = fields.Str(required=True)
+    password = fields.Str(required=True, load_only=True)
+
+
 class OrganisationSchema(Schema):
-    orgId = fields.Str(required=True, dump_only=True)
+    orgId = fields.Str(dump_only=True)
     name = fields.Str(required=True)
     description = fields.Str(required=True)
