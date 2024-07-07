@@ -1,4 +1,5 @@
 
+# import send2trash
 from flask_smorest import Api
 from flask_admin import Admin
 from flask_bcrypt import Bcrypt
@@ -8,6 +9,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask import Flask, g, current_app
 from flask_jwt_extended import JWTManager
 from flask_admin.contrib.sqla import ModelView
+# from sentry_sdk.integrations.flask import FlaskIntegration
 
 
 from .appstrings import lcl
@@ -33,6 +35,12 @@ def create_app(config_type=None):
     app.config.from_object(config.config_classes[config_type])
     config.config_classes[config_type].init_app(app)
     config.BaseConfig.CONFIG_TYPE = config_type
+
+    # sentry_sdk.init(  # chimeobioha@gmail.com
+    #     dsn="https://1ac7e7afcece434795f4ee901631045f@o459854.ingest.sentry.io/5459443",
+    #     integrations=[FlaskIntegration()],
+    #     traces_sample_rate=1.0
+    # )
 
     app.config['API_SPEC_OPTIONS'] = {
         'security': [{"bearerAuth": []}],
