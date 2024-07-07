@@ -6,7 +6,7 @@ from flask import Blueprint, jsonify, redirect, request
 from maincode import jwt
 from maincode.config import BaseConfig
 from maincode.mainapp import utils as au
-from maincode.mainapi.accounts import register_accounts_api
+from .accounts import register_accounts_api
 
 
 mainapi = Blueprint('mainapi', __name__)

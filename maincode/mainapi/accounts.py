@@ -111,6 +111,8 @@ class LoginUser(MethodView):
         try:
             user = auth_user(data['email'], data['password'], login=True)
 
+            user.set_new_access_token()
+
             return jsonify({
                 "status": "success",
                 "message": "Login successful",
@@ -151,7 +153,15 @@ class ListOrgs(MethodView):
     def get(self):
         """LIST ALL ORGS"""
         try:
-            orgs = [o.to_dict() for o in Organisation.query]
+            user_id = get_jwt_identity()
+
+            user = User.get_self(user_id)
+
+            orgs = [
+                o.to_dict() for o in Organisation.query
+                if user in o.users or user == o.creator
+            ]
+            
             return jsonify({
                 "status": "success",
                 "message": "Orgs fetched successfully",
@@ -213,7 +223,6 @@ class RegisterOrg(MethodView):
 class AddUserToOrg(MethodView):
 
     @sm_accounts.arguments(AddUserToOrgSchema(only={'userId'}))
-    # @sm_accounts.response(200)
     def post(self, data, orgId):
         """ADD USER TO ORG"""
         try:

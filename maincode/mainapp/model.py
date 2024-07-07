@@ -108,6 +108,18 @@ class User(db.Model, UserMixin):
             "email": self.email,
             "phone": self.phone,
         }
+    
+    # def all_organisations(self):
+    #     # return self.organisations_created.union_all(self.organisations)
+    #     return self.organisations_created.all().extend(self.organisations.all())
+    
+    def set_new_access_token(self):
+        self._accessTokens = [{
+            lcl.user_id: self.id, 
+            lcl.token: au.create_new_jwt_token(self.id), 
+            lcl.datetime: au.aware_utcnow().isoformat(),
+        }]
+        db.session.commit()
 
 
 class Organisation(db.Model, UserMixin):
