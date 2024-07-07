@@ -7,6 +7,7 @@ colorama==0.4.6; platform_system == 'Windows'
 flask==3.0.3; python_version >= '3.8'
 flask-admin==1.6.1; python_version >= '3.6'
 flask-bcrypt==1.0.1
+flask-smorest
 flask-migrate==4.0.7; python_version >= '3.6'
 flask-sqlalchemy==3.1.1; python_version >= '3.8'
 greenlet==3.0.3; python_version < '3.13' and platform_machine == 'aarch64' or (platform_machine == 'ppc64le' or (platform_machine == 'x86_64' or (platform_machine == 'amd64' or (platform_machine == 'AMD64' or (platform_machine == 'win32' or platform_machine == 'WIN32')))))
