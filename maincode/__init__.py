@@ -38,7 +38,7 @@ def create_app(config_type=None):
 
     sentry_sdk.init(  # chimeobioha@gmail.com
         dsn="https://814e6c8dcc11adcba189fcfb17a4c803@o459854.ingest.us.sentry.io/4507560287862784",
-        # integrations=[FlaskIntegration()],
+        integrations=[FlaskIntegration()],
         traces_sample_rate=1.0
     )
 
