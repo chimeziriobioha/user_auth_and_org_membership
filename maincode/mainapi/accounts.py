@@ -1,4 +1,4 @@
-from flask import jsonify, session
+from flask import jsonify
 from flask.views import MethodView
 from flask_login import login_user
 from flask_smorest import Blueprint as smBlueprint, abort as smAbort
@@ -43,10 +43,10 @@ def auth_user(user_or_email, password, login=False):
         user = user_or_email
 
     if not isinstance(user, User):
-        return au.UNSUCCESSFUL_LOGIN_USER_RESPONSE
+        return jsonify(au.UNSUCCESSFUL_LOGIN_USER_RESPONSE)
 
     if not user.confirm_password(password):
-        return au.UNSUCCESSFUL_LOGIN_USER_RESPONSE
+        return jsonify(au.UNSUCCESSFUL_LOGIN_USER_RESPONSE)
 
     if login:
         login_user(user)
@@ -86,17 +86,19 @@ class RegisterUser(MethodView):
         
         try:
             user, _ = mainapp.routes.register_user(data)
-        except TypeError:
-            return jsonify(au.UNSUCCESSFUL_REGISTER_USER_RESPONSE)
 
-        return jsonify({
-            "status": "success",
-            "message": "Registration successful",
-            "data": {
-                "accessToken": user.current_access_token,
-                "user": user.to_dict()
-            }
-        })
+            return jsonify({
+                "status": "success",
+                "message": "Registration successful",
+                "data": {
+                    "accessToken": user.current_access_token,
+                    "user": user.to_dict()
+                }
+            })
+        except Exception as e: # noqa
+            return jsonify(au.UNSUCCESSFUL_REGISTER_USER_RESPONSE)
+        except: # noqa
+            return jsonify(au.UNSUCCESSFUL_REGISTER_USER_RESPONSE)
 
 
 @sm_accounts.route(LOGIN_USER_URL)
@@ -117,8 +119,9 @@ class LoginUser(MethodView):
                     "user": user.to_dict()
                 }
             })
-        except TypeError:
-            # smAbort(400, message="Unable to complete create user at this time")
+        except Exception as e: # noqa
+            return jsonify(au.UNSUCCESSFUL_LOGIN_USER_RESPONSE)
+        except: # noqa
             return jsonify(au.UNSUCCESSFUL_LOGIN_USER_RESPONSE)
 
 
@@ -144,16 +147,16 @@ class GetUser(MethodView):
 class ListOrgs(MethodView):
 
     @jwt_required()
-    @sm_accounts.response(200, OrganisationSchema)
+    @sm_accounts.response(200, OrganisationSchema(many=True))
     def get(self):
         """LIST ALL ORGS"""
         try:
-            # return Organisation.query.all()
+            orgs = [o.to_dict() for o in Organisation.query]
             return jsonify({
                 "status": "success",
                 "message": "Orgs fetched successfully",
                 "data": {
-                    "organisations": Organisation.query.all()
+                    "organisations": orgs
                 }
             })
         except TypeError:
@@ -195,14 +198,15 @@ class RegisterOrg(MethodView):
 
             org, _ = mainapp.routes.register_org(data)
 
-        except TypeError:
-            return jsonify(au.UNSUCCESSFUL_REGISTER_ORG_RESPONSE)
-
-        return jsonify({
-            "status": "success",
-            "message": "Organisation created successfully",
-            "data": org.to_dict()
-        })
+            return jsonify({
+                "status": "success",
+                "message": "Organisation created successfully",
+                "data": org.to_dict()
+            })
+        except Exception as e: # noqa
+            return jsonify(au.UNSUCCESSFUL_LOGIN_USER_RESPONSE)
+        except: # noqa
+            return jsonify(au.UNSUCCESSFUL_LOGIN_USER_RESPONSE)
 
 
 @sm_accounts.route(ADD_USER_TO_ORG_URL)

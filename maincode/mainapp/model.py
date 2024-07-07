@@ -78,15 +78,23 @@ class User(db.Model, UserMixin):
     def current_access_token_datetime(self):
         return datetime.fromisoformat(self._accessTokens[-1][lcl.datetime])
     
+    @property
+    def default_org_name(self):
+        return f"{self.firstName}'s {ccl.ORGANISATION}"
+    
     def add_default_organisation(self, description):
         default_org = Organisation(
             creatorId=self.id,
             description=description,
+            name=self.default_org_name,
             orgId=au.generate_new_org_id(Organisation),
-            name=f"{self.firstName}'s {ccl.ORGANISATION}",
         )
         db.session.add(default_org)
         return default_org
+    
+    @property
+    def default_org(self):
+        return Organisation.query.filter_by(name=self.default_org_name).first()
     
     @staticmethod
     def get_self(user_id):
