@@ -12,6 +12,7 @@ psycopg2 = "*"
 flask-bcrypt = "*"
 python-dotenv = "*"
 flask-admin = "*"
+sentry-sdk = {extras = ["flask"], version = "*"}
 
 [dev-packages]
 
