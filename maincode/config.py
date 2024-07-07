@@ -23,7 +23,7 @@ class BaseConfig:
     OPENAPI_SWAGGER_UI_URL = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
 
     # JWT VARS
-    JWT_SECREST_KEY = os.environ.get(ucl.JWT_SECRET_KEY)
+    JWT_SECRET_KEY = os.environ.get(ucl.JWT_SECRET_KEY)
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=30)
 

@@ -54,7 +54,7 @@ def auth_user(user_or_email, password, login=False):
     return user
 
 
-# @sm_accounts.route(REGISTER_USER_URL)
+@sm_accounts.route(REGISTER_USER_URL)
 class RegisterUser(MethodView):
 
     @sm_accounts.arguments(UserSchema)
@@ -62,9 +62,6 @@ class RegisterUser(MethodView):
     def post(self, data):
         """REGISTER NEW USER"""
         required_f = ['firstName', 'lastName', 'email', 'password']
-        
-        # from flask import session
-        # ssssss = session['ssssss']
 
         missing_f = [f for f in required_f if not data.get(f)]
 
