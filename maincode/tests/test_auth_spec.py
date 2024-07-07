@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
+from maincode.mainapp.model import User
 from maincode.mainapp import utils as au
 from flask_jwt_extended import decode_token
-from maincode.mainapp.model import User, Organisation
 
 
 unique_user_fields = ["userId", "email"]
@@ -26,19 +26,27 @@ u2data = {
 	"phone": "08012345678"
 }
 
-bad_email_and_errors = [
-	{"email": "", "error": {'field': 'email', 'message': 'Email is required'}, 'status_code': 422},
-	{"email": "ontopchime@gmail", "error": {'field': 'email', 'message': 'Invalid email'}, 'status_code': 422},
-	{"email": "ontopchime@gmail.com", "error": {'field': 'email', 'message': 'User with email exits'}, 'status_code': 422}
-]
+# bad_email_and_errors = [
+# 	{"email": "", "error": {'field': 'email', 'message': 'Email is required'}, 'status_code': 422},
+# 	{"email": "ontopchime@gmail", "error": {'field': 'email', 'message': 'Invalid email'}, 'status_code': 422},
+# 	{"email": "ontopchime@gmail.com", "error": {'field': 'email', 'message': 'User with email exits'}, 'status_code': 422}
+# ]
+
+
+base_url = "http://localhost:5000"
 
 
 def register_user(client, data):
-    return client.post("http://localhost:5000/auth/register", json=data)
+    return client.post(f"{base_url}/auth/register", json=data)
 
 
 def login_user(client, data):
-    return client.post("http://localhost:5000/auth/login", json=data)
+    return client.post(f"{base_url}/auth/login", json=data)
+
+
+def get_orgs(client, user):
+    return client.get(f"{base_url}/api/organisations", 
+                      headers={'Authorization': f'Bearer {user.current_access_token}'})
 
 
 def test_reg_user_without_phone(app, client):
@@ -149,11 +157,15 @@ def test_login(app, client):
     with app.app_context():
         with app.test_request_context():
             with app.test_client() as client:
-                register_user(client, u1data)
-                u = User.query.filter_by(email=u1data['email']).first()
-                assert u
 
-                resp = login_user(client, {'email': u.email, 'password': u1data['password']})
+                register_user(client, u1data)
+                register_user(client, u2data)
+                u1 = User.query.filter_by(email=u1data['email']).first()
+                u2 = User.query.filter_by(email=u2data['email']).first()
+                assert u1 and u2
+
+                # SUCCESS LOGIN FOR user1 // using correct credentials
+                resp = login_user(client, {'email': u1.email, 'password': u1data['password']})
                 resp_d = resp.json
 
                 # check request response
@@ -164,34 +176,93 @@ def test_login(app, client):
 
                 # remove password & add id to get a match
                 _ = u1data.pop('password')
-                u1data.update({'userId': u.userId})
+                u1data.update({'userId': u1.userId})
 
                 assert resp_d['data']['user'] == u1data
                 
                 # check token correctness
                 access_token = resp_d['data']['accessToken']
                 decoded_token = decode_token(access_token)
-                assert decoded_token['sub'] == u.id
+                assert decoded_token['sub'] == u1.id
 
                 # check token expiry
                 exp_dt = datetime.fromtimestamp(decoded_token['exp'], timezone.utc)
                 assert (exp_dt - au.aware_utcnow()).days == 29  # days minus fews seconds
 
+                # FAILED LOGIN FOR user2 // using phone instead of email
+                resp = login_user(client, {'email': u2.phone, 'password': u2data['password']})
+                resp_d = resp.json
 
-# def test_organisations_and_access(app, client):
-#     with app.app_context():
-#         with app.test_request_context():
-#             with app.test_client() as client:
-#                 register_user(client, u1data)
-#                 register_user(client, u2data)
-
-#                 u1 = User.query.filter_by(email=u1data['email']).first()
-#                 u2 = User.query.filter_by(email=u2data['email']).first()
-#                 assert u1 and u2
-
-#                 assert u1.defaul_org not in u2.organisations
-#                 assert u2.defaul_org not in u1.organisations
+                # check request response
+                assert resp.status_code == 401
+                assert resp_d['status'] == "Bad request"
+                assert resp_d['message'] == "Authentication failed"
 
 
+def test_organisations_and_access(app, client):
+    with app.app_context():
+        with app.test_request_context():
+            with app.test_client() as client:
+                register_user(client, u1data)
+                register_user(client, u2data)
 
+                u1 = User.query.filter_by(email=u1data['email']).first()
+                u2 = User.query.filter_by(email=u2data['email']).first()
+                assert u1 and u2
+
+                assert u1.default_org not in u2.organisations
+                assert u2.default_org not in u1.organisations
+
+
+                # TEST DEFAULT ORG/ACCESS
+                # -----User 1----- #
+                login_user(client, {'email': u1.phone, 'password': u1data['password']})
+                # ......
+                resp = get_orgs(client, u1)
+                resp_d = resp.json
+                assert resp.status_code == 200
+                assert len(resp_d['data']['organisations']) == 1
+                assert resp_d['data']['organisations'][0]['name'] == u1.default_org_name
+
+                # -----User 2----- #
+                login_user(client, {'email': u2.phone, 'password': u2data['password']})
+                # .......
+                resp = get_orgs(client, u2)
+                resp_d = resp.json
+                assert resp.status_code == 200
+                assert len(resp_d['data']['organisations']) == 1
+                assert resp_d['data']['organisations'][0]['name'] == u2.default_org_name
+
+
+                # ADD USER-1 TO USER-2's ORG  
+                # user-1 to have access to two orgs now
+                resp = client.post(f"{base_url}/api/organisations/{u2.default_org.id}/users", 
+                                   json={"userId": u1.userId},
+                                  headers={'Authorization': f'Bearer {u2.current_access_token}'})
+                resp_d = resp.json
+                assert resp.status_code == 200
+                assert resp_d['status'] == "success"
+                assert resp_d['message'] == "User added to organisation successfully"
+                #......
+                resp = get_orgs(client, u1)
+                resp_d = resp.json
+                assert len(resp_d['data']['organisations']) == 2
+                assert resp_d['data']['organisations'][0]['name'] == u1.default_org_name
+                assert resp_d['data']['organisations'][1]['name'] == u2.default_org_name
+
+
+                # TEST ORG CREATION
+                # user-2 to have two orgs now also
+                new_org_name = "My New Org"
+                resp = client.post(f"{base_url}/api/organisations", 
+                                   json={"name": new_org_name, "description": ""},
+                                  headers={'Authorization': f'Bearer {u2.current_access_token}'})
+                resp_d = resp.json
+                assert resp.status_code == 201
+                assert resp_d['status'] == "success"
+                assert resp_d['message'] == "Organisation created successfully"
+                assert resp_d['data']['name'] == new_org_name
+                assert resp_d['data']['description'] == ""
+                #......
+                assert len(get_orgs(client, u2).json['data']['organisations']) == 2
 

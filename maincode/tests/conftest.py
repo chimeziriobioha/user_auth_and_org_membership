@@ -1,9 +1,6 @@
 import pytest
-from flask import request
 
-from maincode import db, create_app, jwt
-from maincode.mainapp import utils as au
-from maincode.mainapp.model import User, Organisation
+from maincode import db, create_app
 
 
 @pytest.fixture

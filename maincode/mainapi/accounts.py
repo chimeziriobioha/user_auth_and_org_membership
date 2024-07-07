@@ -3,11 +3,8 @@ from flask.views import MethodView
 from flask_login import login_user
 from flask_smorest import Blueprint as smBlueprint, abort as smAbort
 from flask_jwt_extended import (
-    # create_refresh_token,
-    # create_access_token,
     get_jwt_identity,
     jwt_required,
-    # get_jwt,
 )
 
 from maincode.appstrings import lcl
