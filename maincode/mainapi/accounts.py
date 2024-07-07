@@ -54,7 +54,7 @@ def auth_user(user_or_email, password, login=False):
     return user
 
 
-@sm_accounts.route(REGISTER_USER_URL)
+# @sm_accounts.route(REGISTER_USER_URL)
 class RegisterUser(MethodView):
 
     @sm_accounts.arguments(UserSchema)

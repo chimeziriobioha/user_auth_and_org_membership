@@ -20,6 +20,7 @@ def home():
     )
 
 
+@mainapp.route("/auth/register")
 def register_user(data):
 
     user_id = au.generate_new_user_id(User)
