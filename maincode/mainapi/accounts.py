@@ -95,10 +95,12 @@ class RegisterUser(MethodView):
                     "user": user.to_dict()
                 }
             })
-        except Exception as e: # noqa
+        except TypeError:
             return jsonify(au.UNSUCCESSFUL_REGISTER_USER_RESPONSE)
-        except: # noqa
-            return jsonify(au.UNSUCCESSFUL_REGISTER_USER_RESPONSE)
+        # except Exception as e: # noqa
+        #     return jsonify(au.UNSUCCESSFUL_REGISTER_USER_RESPONSE)
+        # except: # noqa
+        #     return jsonify(au.UNSUCCESSFUL_REGISTER_USER_RESPONSE)
 
 
 @sm_accounts.route(LOGIN_USER_URL)
