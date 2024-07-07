@@ -43,10 +43,10 @@ def auth_user(user_or_email, password, login=False):
         user = user_or_email
 
     if not isinstance(user, User):
-        return jsonify(au.UNSUCCESSFUL_LOGIN_USER_RESPONSE)
+        return jsonify(au.UNSUCCESSFUL_LOGIN_USER_RESPONSE), 401
 
     if not user.confirm_password(password):
-        return jsonify(au.UNSUCCESSFUL_LOGIN_USER_RESPONSE)
+        return jsonify(au.UNSUCCESSFUL_LOGIN_USER_RESPONSE), 401
 
     if login:
         login_user(user)
@@ -94,11 +94,11 @@ class RegisterUser(MethodView):
                     "accessToken": user.current_access_token,
                     "user": user.to_dict()
                 }
-            })
+            }), 201
         except Exception as e: # noqa
-            return jsonify(au.UNSUCCESSFUL_REGISTER_USER_RESPONSE)
+            return jsonify(au.UNSUCCESSFUL_REGISTER_USER_RESPONSE), 400
         except: # noqa
-            return jsonify(au.UNSUCCESSFUL_REGISTER_USER_RESPONSE)
+            return jsonify(au.UNSUCCESSFUL_REGISTER_USER_RESPONSE), 400
 
 
 @sm_accounts.route(LOGIN_USER_URL)
@@ -120,11 +120,11 @@ class LoginUser(MethodView):
                     "accessToken": user.current_access_token,
                     "user": user.to_dict()
                 }
-            })
+            }), 200
         except Exception as e: # noqa
-            return jsonify(au.UNSUCCESSFUL_LOGIN_USER_RESPONSE)
+            return jsonify(au.UNSUCCESSFUL_LOGIN_USER_RESPONSE), 401
         except: # noqa
-            return jsonify(au.UNSUCCESSFUL_LOGIN_USER_RESPONSE)
+            return jsonify(au.UNSUCCESSFUL_LOGIN_USER_RESPONSE), 401
 
 
 @sm_accounts.route(GET_USER_URL)
@@ -140,7 +140,7 @@ class GetUser(MethodView):
                 "status": "success",
                 "message": "User fetched successfully",
                 "data": user.to_dict()
-            })
+            }), 200
         except TypeError:
             smAbort(400, message="Could not get user")
 
@@ -168,7 +168,7 @@ class ListOrgs(MethodView):
                 "data": {
                     "organisations": orgs
                 }
-            })
+            }), 200
         except TypeError:
             smAbort(500, message="Unable to get orgs at this time")
 
@@ -186,7 +186,7 @@ class GetOrg(MethodView):
                 "status": "success",
                 "message": "Org fetched successfully",
                 "data": org.to_dict()
-            })
+            }), 200
         except TypeError:
             smAbort(400, message="Could not get org")
 
@@ -212,11 +212,11 @@ class RegisterOrg(MethodView):
                 "status": "success",
                 "message": "Organisation created successfully",
                 "data": org.to_dict()
-            })
+            }), 201
         except Exception as e: # noqa
-            return jsonify(au.UNSUCCESSFUL_LOGIN_USER_RESPONSE)
+            return jsonify(au.UNSUCCESSFUL_LOGIN_USER_RESPONSE), 400
         except: # noqa
-            return jsonify(au.UNSUCCESSFUL_LOGIN_USER_RESPONSE)
+            return jsonify(au.UNSUCCESSFUL_LOGIN_USER_RESPONSE), 400
 
 
 @sm_accounts.route(ADD_USER_TO_ORG_URL)
