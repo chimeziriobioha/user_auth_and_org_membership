@@ -63,8 +63,8 @@ class RegisterUser(MethodView):
         """REGISTER NEW USER"""
         required_f = ['firstName', 'lastName', 'email', 'password']
         
-        from flask import session
-        ssssss = session['ssssss']
+        # from flask import session
+        # ssssss = session['ssssss']
 
         missing_f = [f for f in required_f if not data.get(f)]
 
