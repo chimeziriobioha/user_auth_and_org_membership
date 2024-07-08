@@ -1,9 +1,8 @@
-from flask import Blueprint
-from markupsafe import Markup
+from flask import Blueprint, jsonify, request
 
 
 from maincode import db
-from maincode.appstrings import lcl
+from maincode.appstrings import lcl, ccl
 from maincode.mainapp import utils as au
 from maincode.mainapp.model import User, Organisation
 
@@ -13,11 +12,13 @@ mainapp = Blueprint("mainapp", __name__)
 
 @mainapp.route("/")
 def home():
-    """Just to have something on the home page"""
-    return Markup(
-        "<h1>Hello, Welcome!</h1> <br>"
-        "<h3>This is <a href='https://hng.tech'>HNG11</a> Stage Two Task by Chimeziri Obioha.</h3>"
-    )
+    """Explain yourself and status"""
+    return jsonify({
+        lcl.project: "HNG11 [https://hng.tech] Stage Two Task by Chimeziri Obioha",
+        lcl.description: "User Authentication & Organisation Membership",
+        lcl.documentation: f"{request.base_url}api/ui",
+        lcl.status: ccl.ACTIVE
+    }), 200
 
 
 def register_user(data):

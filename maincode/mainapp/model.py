@@ -41,7 +41,7 @@ class User(db.Model, UserMixin):
     phone = db.Column(db.String)
     created_on = db.Column(db.DateTime, nullable=False, default=au.aware_utcnow)
     # .........
-    # Has to sacrifice `load="dynamic"` in order to visualize relationships in flask-admin
+    # Have to sacrifice `load="dynamic"` in order to visualize relationships in flask-admin
     organisations_created = db.relationship(
         'Organisation', backref=lcl.creator, foreign_keys='Organisation.creatorId')
     organisations = db.relationship(
@@ -110,8 +110,7 @@ class User(db.Model, UserMixin):
         }
     
     # def all_organisations(self):
-    #     # return self.organisations_created.union_all(self.organisations)
-    #     return self.organisations_created.all().extend(self.organisations.all())
+    #     return self.organisations_created.union(self.organisations)
     
     def set_new_access_token(self):
         self._accessTokens = [{
@@ -122,7 +121,7 @@ class User(db.Model, UserMixin):
         db.session.commit()
 
 
-class Organisation(db.Model, UserMixin):
+class Organisation(db.Model):
     """"""
     # -----NOTE----- #
     # Though python naming convention is ``some_name``

@@ -1,4 +1,5 @@
 
+import os
 import sentry_sdk
 from flask_smorest import Api
 from flask_admin import Admin
@@ -12,8 +13,8 @@ from flask_admin.contrib.sqla import ModelView
 from sentry_sdk.integrations.flask import FlaskIntegration
 
 
-from .appstrings import lcl
 from maincode import config
+from .appstrings import lcl, ucl
 
 
 api = Api()
@@ -36,8 +37,8 @@ def create_app(config_type=None):
     config.config_classes[config_type].init_app(app)
     config.BaseConfig.CONFIG_TYPE = config_type
 
-    sentry_sdk.init(  # chimeobioha@gmail.com
-        dsn="https://814e6c8dcc11adcba189fcfb17a4c803@o459854.ingest.us.sentry.io/4507560287862784",
+    sentry_sdk.init(
+        dsn=f"{os.environ.get(ucl.SENTRY_DSN_FOR_HNG11)}",
         integrations=[FlaskIntegration()],
         traces_sample_rate=1.0
     )

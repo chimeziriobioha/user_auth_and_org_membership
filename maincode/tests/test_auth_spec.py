@@ -26,12 +26,6 @@ u2data = {
 	"phone": "08012345678"
 }
 
-# bad_email_and_errors = [
-# 	{"email": "", "error": {'field': 'email', 'message': 'Email is required'}, 'status_code': 422},
-# 	{"email": "ontopchime@gmail", "error": {'field': 'email', 'message': 'Invalid email'}, 'status_code': 422},
-# 	{"email": "ontopchime@gmail.com", "error": {'field': 'email', 'message': 'User with email exits'}, 'status_code': 422}
-# ]
-
 
 base_url = "http://localhost:5000"
 
