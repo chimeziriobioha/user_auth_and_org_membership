@@ -38,7 +38,7 @@ def create_app(config_type=None):
     config.BaseConfig.CONFIG_TYPE = config_type
 
     sentry_sdk.init(
-        dsn=f"{os.environ.get(ucl.SENTRY_DSN_FOR_HNG11)}",
+        dsn=f"{os.environ.get(ucl.SENTRY_DSN_FOR_HNG)}",
         integrations=[FlaskIntegration()],
         traces_sample_rate=1.0
     )
@@ -96,7 +96,7 @@ class UserAdminView(ViewOnly):
     column_list = (
         'userId', 'firstName', 'lastName', 'email',
         'organisations', 'organisations_created',
-        'phone', 'password', '_accessTokens', 
+        'phone', 'password', '_accessTokens',
     )
 
 
