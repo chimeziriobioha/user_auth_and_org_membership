@@ -27,6 +27,7 @@ class lcl:
     description = "description"
     organisations = "organisations"
     documentation = "documentation"
+    data_visualization = "data_visualization"
 
 
 class ccl:

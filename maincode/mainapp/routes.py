@@ -16,6 +16,7 @@ def home():
     return jsonify({
         lcl.project: "HNG11 [https://hng.tech] Stage Two Task by Chimeziri Obioha",
         lcl.description: "User Authentication & Organisation Membership",
+        lcl.data_visualization: f"{request.base_url}admin",
         lcl.documentation: f"{request.base_url}api/ui",
         lcl.status: ccl.ACTIVE
     }), 200
