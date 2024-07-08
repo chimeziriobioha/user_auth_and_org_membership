@@ -138,8 +138,10 @@ class GetUser(MethodView):
                 "message": "User fetched successfully",
                 "data": user.to_dict()
             }), 200
-        except TypeError:
-            smAbort(400, message="Could not get user")
+        except Exception as e: # noqa
+            return jsonify(au.UNSUCCESSFUL_GET_USER_RESPONSE), 400
+        except: # noqa
+            return jsonify(au.UNSUCCESSFUL_GET_USER_RESPONSE), 400
 
 
 @sm_accounts.route(LIST_ORGS_URL)
@@ -166,8 +168,10 @@ class ListOrgs(MethodView):
                     "organisations": orgs
                 }
             }), 200
-        except TypeError:
-            smAbort(500, message="Unable to get orgs at this time")
+        except Exception as e: # noqa
+            return jsonify(au.UNSUCCESSFUL_LIST_ORGS_RESPONSE), 400
+        except: # noqa
+            return jsonify(au.UNSUCCESSFUL_LIST_ORGS_RESPONSE), 400
 
 
 @sm_accounts.route(GET_ORG_URL)
@@ -184,8 +188,10 @@ class GetOrg(MethodView):
                 "message": "Org fetched successfully",
                 "data": org.to_dict()
             }), 200
-        except TypeError:
-            smAbort(400, message="Could not get org")
+        except Exception as e: # noqa
+            return jsonify(au.UNSUCCESSFUL_GET_ORG_RESPONSE), 400
+        except: # noqa
+            return jsonify(au.UNSUCCESSFUL_GET_ORG_RESPONSE), 400
 
 
 @sm_accounts.route(REGISTER_ORG_URL)
@@ -211,9 +217,9 @@ class RegisterOrg(MethodView):
                 "data": org.to_dict()
             }), 201
         except Exception as e: # noqa
-            return jsonify(au.UNSUCCESSFUL_LOGIN_USER_RESPONSE), 400
+            return jsonify(au.UNSUCCESSFUL_REGISTER_ORG_RESPONSE), 400
         except: # noqa
-            return jsonify(au.UNSUCCESSFUL_LOGIN_USER_RESPONSE), 400
+            return jsonify(au.UNSUCCESSFUL_REGISTER_ORG_RESPONSE), 400
 
 
 @sm_accounts.route(ADD_USER_TO_ORG_URL)
@@ -226,12 +232,10 @@ class AddUserToOrg(MethodView):
             _, _ = mainapp.routes.add_user_to_org(data['userId'], orgId)
 
             return jsonify(au.SUCCESSFUL_ADD_USER_TO_ORG_RESPONSE), 200
-        except TypeError:
-            return {
-                "status": "Bad Request",
-                "message": "Client error",
-                "statusCode": 400
-            }
+        except Exception as e: # noqa
+            return jsonify(au.UNSUCCESSFUL_ADD_USER_TO_ORG_RESPONSE), 401
+        except: # noqa
+            return jsonify(au.UNSUCCESSFUL_ADD_USER_TO_ORG_RESPONSE), 401
 
 
 def register_accounts_api(app):

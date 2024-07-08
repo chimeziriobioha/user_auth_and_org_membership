@@ -21,6 +21,13 @@ UNSUCCESSFUL_LOGIN_USER_RESPONSE = {
 }
 
 
+UNSUCCESSFUL_GET_USER_RESPONSE = {
+    "status": "Not Found",
+    "message": "User not found",
+    "statusCode": 400
+}
+
+
 UNSUCCESSFUL_REGISTER_ORG_RESPONSE = {
     "status": "Bad Request",
     "message": "Client error",
@@ -28,9 +35,30 @@ UNSUCCESSFUL_REGISTER_ORG_RESPONSE = {
 }
 
 
+UNSUCCESSFUL_GET_ORG_RESPONSE = {
+    "status": "Not Found",
+    "message": "Organisation not found",
+    "statusCode": 400
+}
+
+
+UNSUCCESSFUL_LIST_ORGS_RESPONSE = {
+    "status": "Not Found",
+    "message": "Organisations list not found",
+    "statusCode": 400
+}
+
+
 SUCCESSFUL_ADD_USER_TO_ORG_RESPONSE = {
     "status": "success",
     "message": "User added to organisation successfully",
+}
+
+
+UNSUCCESSFUL_ADD_USER_TO_ORG_RESPONSE = {
+    "status": "Bad Request",
+    "message": "Client error",
+    "statusCode": 401
 }
 
 
