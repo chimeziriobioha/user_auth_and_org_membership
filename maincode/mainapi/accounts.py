@@ -132,11 +132,19 @@ class GetUser(MethodView):
     def get(self, id):
         """GET PARTICULAR USER"""
         try:
-            user = User.get_self(id)
+            req_user = User.get_self(id)
+            auth_user = User.get_self(get_jwt_identity())
+            if (not auth_user) or (not req_user):
+                return jsonify(au.UNSUCCESSFUL_GET_USER_RESPONSE), 400
+            
+            if  req_user != auth_user \
+                and req_user not in auth_user.users_in_all_organisations:
+                return jsonify(au.UNSUCCESSFUL_GET_USER_RESPONSE), 400
+
             return jsonify({
                 "status": "success",
                 "message": "User fetched successfully",
-                "data": user.to_dict()
+                "data": req_user.to_dict()
             }), 200
         except Exception as e: # noqa
             return jsonify(au.UNSUCCESSFUL_GET_USER_RESPONSE), 400

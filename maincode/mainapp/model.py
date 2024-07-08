@@ -109,8 +109,13 @@ class User(db.Model, UserMixin):
             "phone": self.phone,
         }
     
-    # def all_organisations(self):
-    #     return self.organisations_created.union(self.organisations)
+    @property
+    def all_organisations(self) -> list:
+        return [o for o in Organisation.query if self in o.users or self == o.creator]
+    
+    @property
+    def users_in_all_organisations(self) -> list:
+        return [u for o in self.all_organisations for u in o.users]
     
     def set_new_access_token(self):
         self._accessTokens = [{
