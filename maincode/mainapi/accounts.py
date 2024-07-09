@@ -58,16 +58,10 @@ class RegisterUser(MethodView):
     @sm_accounts.response(201, UserSchema)
     def post(self, data):
         """REGISTER NEW USER"""
-        required_f = ['firstName', 'lastName', 'email', 'password']
 
-        missing_f = [f for f in required_f if not data.get(f)]
-
-        errors = {lcl.errors: []}
-
-        if missing_f:
-            errors[lcl.errors].extend(
-                [{lcl.field: f, lcl.message: f"{f.title()} is required"} for f in missing_f]
-            )
+        errors = au.check_regiter_user_data(data)
+        if errors[lcl.errors]:
+            return jsonify(errors), 422
         
         if User.query.filter_by(email=data[lcl.email]).first():
             errors[lcl.errors].append({lcl.field: lcl.email, lcl.message: "User with email exists"})
@@ -75,7 +69,7 @@ class RegisterUser(MethodView):
         if not au.is_valid_email_format(data[lcl.email]):
             errors[lcl.errors].append({lcl.field: lcl.email, lcl.message: "Invalid email"})
         
-        if data[lcl.phone] and not data[lcl.phone].replace('+', '').replace('-', '').isnumeric():
+        if data.get(lcl.phone) and not data[lcl.phone].replace('+', '').replace('-', '').isnumeric():
             errors[lcl.errors].append({lcl.field: lcl.phone, lcl.message: "Invalid phone number"})
         
         if errors[lcl.errors]:
@@ -105,8 +99,13 @@ class LoginUser(MethodView):
     @sm_accounts.response(200, UserSchema)
     def post(self, data):
         """LOGIN USER"""
+        
+        errors = au.check_login_data(data)
+        if errors[lcl.errors]:
+            return jsonify(errors), 422
+        
         try:
-            user = auth_user(data['email'], data['password'], login=True)
+            user = auth_user(data.get(lcl.email), data.get(lcl.password), login=True)
 
             user.set_new_access_token()
 
@@ -132,19 +131,19 @@ class GetUser(MethodView):
     def get(self, id):
         """GET PARTICULAR USER"""
         try:
-            req_user = User.get_self(id)
-            auth_user = User.get_self(get_jwt_identity())
-            if (not auth_user) or (not req_user):
+            requested_user = User.get_self(id)
+            current_user = User.get_self(get_jwt_identity())
+            if (not current_user) or (not requested_user):
                 return jsonify(au.UNSUCCESSFUL_GET_USER_RESPONSE), 400
             
-            if  req_user != auth_user \
-                and req_user not in auth_user.users_in_all_organisations:
+            if  requested_user != current_user \
+                and requested_user not in current_user.users_in_all_organisations:
                 return jsonify(au.UNSUCCESSFUL_GET_USER_RESPONSE), 400
 
             return jsonify({
                 "status": "success",
                 "message": "User fetched successfully",
-                "data": req_user.to_dict()
+                "data": requested_user.to_dict()
             }), 200
         except Exception as e: # noqa
             return jsonify(au.UNSUCCESSFUL_GET_USER_RESPONSE), 400
@@ -210,8 +209,7 @@ class RegisterOrg(MethodView):
     @sm_accounts.response(201, OrganisationSchema)
     def post(self, data):
         """REGISTER NEW ORG"""
-
-        if not data[lcl.name]:
+        if not data.get(lcl.name):
             return jsonify({lcl.errors: [{lcl.field: lcl.name, lcl.message: "Name is required"}]}), 422
 
         try:
@@ -237,7 +235,7 @@ class AddUserToOrg(MethodView):
     def post(self, data, orgId):
         """ADD USER TO ORG"""
         try:
-            _, _ = mainapp.routes.add_user_to_org(data['userId'], orgId)
+            _, _ = mainapp.routes.add_user_to_org(data.get('userId'), orgId)
 
             return jsonify(au.SUCCESSFUL_ADD_USER_TO_ORG_RESPONSE), 200
         except Exception as e: # noqa

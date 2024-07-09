@@ -128,3 +128,30 @@ def is_valid_email_format(string):
 
     # Else
     return True
+
+
+def check_regiter_user_data(d):
+    required_f = ['firstName', 'lastName', 'email', 'password']
+
+    missing_f = [f for f in required_f if not d.get(f)]
+
+    e_dict = {lcl.errors: []}
+
+    if missing_f:
+        e_dict[lcl.errors].extend(
+            [{lcl.field: f, lcl.message: f"{f.title()} is required"} for f in missing_f]
+        )
+    
+    return e_dict
+
+
+def check_login_data(d):
+    e_dict = {lcl.errors: []}
+    
+    if not d.get(lcl.email):
+        e_dict[lcl.errors].append({lcl.field: lcl.email, lcl.message: "Email is required"})
+
+    if not d.get(lcl.password):
+        e_dict[lcl.errors].append({lcl.field: lcl.password, lcl.message: "Password is required"})
+    
+    return e_dict

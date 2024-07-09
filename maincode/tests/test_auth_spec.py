@@ -140,7 +140,13 @@ def test_reg_user_without_required_fields(app, client):
             with app.test_client() as client:
                 for f in required_user_fields:
                     u3data = u1data.copy()
-                    u3data.update({f: ""})
+                    if f in ['firstName', 'email']:
+                        # delete both the key/item
+                        # for firstName & email
+                        del u3data[f]
+                    else:
+                        # set the item to ""
+                        u3data.update({f: ""})
                     resp = register_user(client, u3data)
                     assert resp.status_code == 422
                     print(resp.json['errors'])
@@ -191,6 +197,14 @@ def test_login(app, client):
                 assert resp.status_code == 401
                 assert resp_d['status'] == "Bad request"
                 assert resp_d['message'] == "Authentication failed"
+
+                # FAILED LOGIN FOR user2 // using emmty email key
+                resp = login_user(client, {'password': u2data['password']})
+                resp_d = resp.json
+
+                # check request response
+                assert resp.status_code == 422
+                assert {'field': "email", 'message': "Email is required"} == resp.json['errors'][0]
 
 
 def test_organisations_and_access(app, client):

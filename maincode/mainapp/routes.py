@@ -58,7 +58,7 @@ def register_org(data):
     org = Organisation(
         name=data[lcl.name],
         creatorId=data['creatorId'],
-        description=data[lcl.description],
+        description=data.get(lcl.description),
         orgId=au.generate_new_org_id(Organisation),
     )
 

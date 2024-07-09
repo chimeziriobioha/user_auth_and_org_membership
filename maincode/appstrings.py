@@ -20,6 +20,7 @@ class lcl:
     testing = "testing"
     message = "message"
     project = "project"
+    password = "password"
     datetime = "datetime"
     production = "production"
     production = "production"

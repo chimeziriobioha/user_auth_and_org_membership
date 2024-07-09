@@ -1,35 +1,25 @@
 from marshmallow import Schema, fields
 
 
-from maincode.mainapp.model import User
-
-
-def validate_email(value):
-    return value and User.query.filter_by(email=value).first() is None
-
-
 class UserSchema(Schema):
     userId = fields.Str(dump_only=True)
-    # firstName = fields.Str(required=True)
-    # lastName = fields.Str(required=True)
-    # email = fields.Email(validate=validate_email)
     firstName = fields.Str()
     lastName = fields.Str()
     email = fields.Str()
-    password = fields.Str(required=True, load_only=True)
+    password = fields.Str(load_only=True)
     phone = fields.Str()
 
 
 class UserLoginSchema(Schema):
-    email = fields.Str(required=True)
-    password = fields.Str(required=True, load_only=True)
+    email = fields.Str()
+    password = fields.Str(load_only=True)
 
 
 class AddUserToOrgSchema(Schema):
-    userId = fields.Str(required=True)
+    userId = fields.Str()
 
 
 class OrganisationSchema(Schema):
     orgId = fields.Str(dump_only=True)
-    name = fields.Str(required=True)
-    description = fields.Str(required=True)
+    name = fields.Str()
+    description = fields.Str()
