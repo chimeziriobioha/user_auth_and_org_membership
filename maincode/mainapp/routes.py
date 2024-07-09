@@ -43,6 +43,9 @@ def register_user(data):
     # Create default org for user
     org = user.add_default_organisation("")
 
+    # Add user to org
+    org.users.add(user)
+
     # Commit all
     db.session.commit()
 
@@ -59,8 +62,13 @@ def register_org(data):
         orgId=au.generate_new_org_id(Organisation),
     )
 
+    creator = User.get_self(data['creatorId'])
+
     # Add org to session
     db.session.add(org)
+
+    # Add user to org
+    org.users.add(creator)
 
     # Commit all
     db.session.commit()
