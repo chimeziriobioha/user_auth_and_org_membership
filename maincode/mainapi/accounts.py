@@ -1,7 +1,7 @@
 from flask import jsonify
 from flask.views import MethodView
 from flask_login import login_user
-from flask_smorest import Blueprint as smBlueprint, abort as smAbort
+from flask_smorest import Blueprint as smBlueprint
 from flask_jwt_extended import (
     get_jwt_identity,
     jwt_required,
@@ -105,7 +105,7 @@ class LoginUser(MethodView):
             return jsonify(errors), 422
         
         try:
-            user = auth_user(data.get(lcl.email), data.get(lcl.password), login=True)
+            user = auth_user(data[lcl.email], data[lcl.password], login=True)
 
             user.set_new_access_token()
 
@@ -190,6 +190,9 @@ class GetOrg(MethodView):
         """GET PARTICULAR ORGANISATION"""
         try:
             org = Organisation.get_self(orgId)
+            if not org:
+                return jsonify(au.UNSUCCESSFUL_GET_ORG_RESPONSE), 400
+            
             return jsonify({
                 "status": "success",
                 "message": "Org fetched successfully",
@@ -234,8 +237,13 @@ class AddUserToOrg(MethodView):
     @sm_accounts.arguments(AddUserToOrgSchema(only={'userId'}))
     def post(self, data, orgId):
         """ADD USER TO ORG"""
+        if not data.get('userId'):
+            return jsonify({lcl.errors: [{lcl.field: 'userId', lcl.message: "UserId is required"}]}), 422
+        
         try:
-            _, _ = mainapp.routes.add_user_to_org(data.get('userId'), orgId)
+            result = mainapp.routes.add_user_to_org(data.get('userId'), orgId)
+            if not isinstance(result, tuple):
+                return jsonify(au.UNSUCCESSFUL_ADD_USER_TO_ORG_RESPONSE), 401
 
             return jsonify(au.SUCCESSFUL_ADD_USER_TO_ORG_RESPONSE), 200
         except Exception as e: # noqa
